@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: cimple-eviewer-collector
+spec:
+  containers:
+  - name: cimple-eviewer-collector
+    image: taksan/cimple-eviewer-collector:v1

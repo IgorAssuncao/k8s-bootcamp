@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cimple-eviewer-deployment
+  labels:
+    app: &name cimple-eviewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *name
+  template:
+    metadata:
+      name: *name
+      labels:
+        app: *name
+    spec:
+      containers:
+        - name: *name
+          image: taksan/cimple-eviewer:v1
+          ports:
+            - containerPort: 5000
+              name: http
+          env:
+            - name: CONF_FILE
+              value: /app/config.json
+          livenessProbe:
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 5
+            httpGet:
+              path: /health
+              port: http

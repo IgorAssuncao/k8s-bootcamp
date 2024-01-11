@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cimple-back-deployment
+  labels:
+    app: &name cimple-back
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *name
+  template:
+    metadata:
+      name: *name
+      labels:
+        app: *name
+    spec:
+      initContainers:
+      - name: init-config
+        image: alpine
+        command:
+          - sh
+          - -c
+          - |
+            cat <<EOF > /opt/config.json
+            {
+              "events_file": "/app/logs/audit_events.log",
+              "peer_url": "http://cimple-eviewer.default.svc.cluster.local/api/events"
+            }
+            EOF
+      containers:
+        - name: *name
+          image: taksan/cimple-back:v1
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: RUN_WITHOUT_DATABASE
+              value: "true"
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs/
+        - name: cimple-eviewer-collector
+          image: taksan/cimple-eviewer-collector:v1
+          volumeMounts:
+          - name: config-data
+            mountPath: /opt/
+          - name: logs
+            mountPath: /app/logs/
+      volumes:
+        - name: config-data
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
